@@ -3,15 +3,16 @@ const prisma = new PrismaClient();
 
 const createUser = async (req, res) => {
   try {
-    const { name } = req.body;
+    const { name, email } = req.body;
     
-    if (!name) {
-      return res.status(400).json({ error: 'Name is required' });
+    if (!name || !email) {
+      return res.status(400).json({ error: 'Name and email are required' });
     }
 
     const user = await prisma.user.create({
       data: {
         name,
+        email,
       },
     });
 
@@ -24,7 +25,15 @@ const createUser = async (req, res) => {
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await prisma.user.findMany();
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        createdAt: true,
+        updatedAt: true
+      }
+    });
     res.json(users);
   } catch (error) {
     console.error('Error fetching users:', error);

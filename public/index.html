@@ -30,7 +30,8 @@
             margin-bottom: 5px;
             color: #555;
         }
-        input[type="text"] {
+        input[type="text"],
+        input[type="email"] {
             width: 100%;
             padding: 8px;
             border: 1px solid #ddd;
@@ -72,6 +73,10 @@
             <div class="form-group">
                 <label for="name">Name:</label>
                 <input type="text" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
                 <div id="error" class="error"></div>
             </div>
             <button type="submit">Add User</button>
@@ -96,6 +101,7 @@
                 usersList.innerHTML = users.map(user => `
                     <div class="user-item">
                         <strong>${user.name}</strong>
+                        <div>Email: ${user.email}</div>
                         <div>ID: ${user.id}</div>
                         <div>Created: ${new Date(user.createdAt).toLocaleString()}</div>
                     </div>
@@ -107,18 +113,19 @@
         }
 
         // Function to add a new user
-        async function addUser(name) {
+        async function addUser(name, email) {
             try {
                 const response = await fetch('/users', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ name }),
+                    body: JSON.stringify({ name, email }),
                 });
 
                 if (!response.ok) {
-                    throw new Error('Failed to add user');
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to add user');
                 }
 
                 const user = await response.json();
@@ -127,7 +134,7 @@
                 fetchUsers(); // Refresh the user list
             } catch (error) {
                 console.error('Error adding user:', error);
-                errorDiv.textContent = 'Error adding user';
+                errorDiv.textContent = error.message || 'Error adding user';
             }
         }
 
@@ -135,10 +142,12 @@
         userForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
             const name = nameInput.value.trim();
+            const email = emailInput.value.trim();
             
-            if (name) {
-                addUser(name);
+            if (name && email) {
+                addUser(name, email);
             }
         });
 
